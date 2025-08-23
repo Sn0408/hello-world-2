@@ -23,10 +23,34 @@ let tasks: Task[] = [
 
 let nextId = 3;
 
+// Helper function to simulate random failures (10% chance)
+const simulateRandomFailure = () => {
+  if (Math.random() < 0.1) {
+    throw new Error('Random server error occurred');
+  }
+};
+
+export const getTasks = async (): Promise<Task[]> => {
+  try {
+    // Simulate API latency
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Simulate random failure
+    simulateRandomFailure();
+    
+    return [...tasks];
+  } catch (error) {
+    throw new Error('Failed to fetch tasks');
+  }
+};
+
 export const createTask = async (input: TaskInput): Promise<Task> => {
   try {
     // Simulate API latency
     await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Simulate random failure
+    simulateRandomFailure();
     
     const newTask: Task = {
       id: nextId++,
@@ -47,6 +71,9 @@ export const updateTask = async (id: number, input: Partial<TaskInput>): Promise
     // Simulate API latency
     await new Promise(resolve => setTimeout(resolve, 300));
     
+    // Simulate random failure
+    simulateRandomFailure();
+    
     const taskIndex = tasks.findIndex(task => task.id === id);
     if (taskIndex === -1) {
       throw new Error('Task not found');
@@ -66,8 +93,21 @@ export const updateTask = async (id: number, input: Partial<TaskInput>): Promise
   }
 };
 
-export const getTasks = async (): Promise<Task[]> => {
-  // Simulate API latency
-  await new Promise(resolve => setTimeout(resolve, 100));
-  return [...tasks];
+export const deleteTask = async (id: number): Promise<void> => {
+  try {
+    // Simulate API latency
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Simulate random failure
+    simulateRandomFailure();
+    
+    const taskIndex = tasks.findIndex(task => task.id === id);
+    if (taskIndex === -1) {
+      throw new Error('Task not found');
+    }
+    
+    tasks.splice(taskIndex, 1);
+  } catch (error) {
+    throw new Error('Failed to delete task');
+  }
 };

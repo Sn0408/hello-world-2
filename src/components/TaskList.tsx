@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import TaskCard from './TaskCard';
 import TaskForm from './TaskForm';
-import { createTask, updateTask, getTasks, type Task } from '../services/tasks';
+import { createTask, updateTask, deleteTask, getTasks, type Task } from '../services/tasks';
 
 const TaskList = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
   const [successMessage, setSuccessMessage] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   useEffect(() => {
     loadTasks();
@@ -17,8 +18,10 @@ const TaskList = () => {
     try {
       const loadedTasks = await getTasks();
       setTasks(loadedTasks);
+      setErrorMessage('');
     } catch (error) {
       console.error('Failed to load tasks:', error);
+      setErrorMessage('Failed to load tasks. Please try again.');
     }
   };
 
@@ -33,8 +36,10 @@ const TaskList = () => {
           task.id === id ? updatedTask : task
         )
       );
+      setErrorMessage('');
     } catch (error) {
       console.error('Failed to toggle task:', error);
+      setErrorMessage('Failed to update task. Please try again.');
     }
   };
 
@@ -44,8 +49,10 @@ const TaskList = () => {
       setTasks(prevTasks => [...prevTasks, newTask]);
       setShowCreate(false);
       showSuccessMessage('Task created successfully!');
+      setErrorMessage('');
     } catch (error) {
       console.error('Failed to create task:', error);
+      setErrorMessage('Failed to create task. Please try again.');
     }
   };
 
@@ -61,8 +68,22 @@ const TaskList = () => {
       );
       setEditingTaskId(null);
       showSuccessMessage('Task updated successfully!');
+      setErrorMessage('');
     } catch (error) {
       console.error('Failed to update task:', error);
+      setErrorMessage('Failed to update task. Please try again.');
+    }
+  };
+
+  const handleDeleteTask = async (id: number) => {
+    try {
+      await deleteTask(id);
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
+      showSuccessMessage('Task deleted successfully!');
+      setErrorMessage('');
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      setErrorMessage('Failed to delete task. Please try again.');
     }
   };
 
@@ -99,6 +120,7 @@ const TaskList = () => {
         completed={task.completed}
         onToggle={() => toggleTask(task.id)}
         onEdit={() => handleEditTask(task)}
+        onDelete={() => handleDeleteTask(task.id)}
       />
     );
   };
@@ -132,6 +154,16 @@ const TaskList = () => {
           className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md animate-fade-in"
         >
           {successMessage}
+        </div>
+      )}
+
+      {/* Error Message */}
+      {errorMessage && (
+        <div 
+          role="alert"
+          className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md animate-fade-in"
+        >
+          {errorMessage}
         </div>
       )}
 
