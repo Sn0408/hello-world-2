@@ -9,6 +9,7 @@ const TaskList = () => {
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     loadTasks();
@@ -16,12 +17,15 @@ const TaskList = () => {
 
   const loadTasks = async () => {
     try {
+      setLoading(true);
       const loadedTasks = await getTasks();
       setTasks(loadedTasks);
       setErrorMessage('');
     } catch (error) {
       console.error('Failed to load tasks:', error);
       setErrorMessage('Failed to load tasks. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -125,9 +129,31 @@ const TaskList = () => {
     );
   };
 
+  if (loading && tasks.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="flex items-center space-x-3 text-gray-600">
+          <svg className="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Loading tasks…</span>
+        </div>
+      </div>
+    );
+  }
+
   if (tasks.length === 0 && !showCreate) {
     return (
       <div className="text-center py-12">
+        {errorMessage && (
+          <div 
+            role="alert"
+            className="mx-auto mb-6 max-w-xl bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md animate-fade-in"
+          >
+            {errorMessage}
+          </div>
+        )}
         <div className="text-gray-500 mb-4">
           <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -190,6 +216,15 @@ const TaskList = () => {
       {/* Task List */}
       <div className="space-y-4">
         {tasks.map(renderTask)}
+        {loading && tasks.length > 0 && (
+          <div className="flex items-center space-x-2 text-gray-500">
+            <svg className="animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Refreshing…</span>
+          </div>
+        )}
       </div>
     </div>
   );
